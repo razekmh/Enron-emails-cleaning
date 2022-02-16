@@ -1,3 +1,3 @@
 theme: jekyll-theme-hacker
-title: Cleaning enron emails dataset
-description: This is a blog about cleaning the enron emails dataset and ingisting it into databases
+title: Cleaning enron email dataset
+description: Extracting information and ingisting it into database
