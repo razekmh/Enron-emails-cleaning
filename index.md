@@ -1,5 +1,7 @@
 ## Background
-This is the story of cleaning Enron email dataset. My aim of downloading and cleaning this dataset is to use it as an example in a workshop about databases and analysis. 
+This is the story of cleaning Enron email dataset. My aim of downloading and
+cleaning this dataset is to use it as an example in a workshop about databases
+and analysis. 
 
 The dataset is offered by CMU [here](https://www.cs.cmu.edu/~enron/). 
 You can use the [editor on GitHub](https://github.com/razekmh/Enron-emails-cleaning/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
