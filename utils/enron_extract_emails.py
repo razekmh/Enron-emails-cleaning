@@ -9,14 +9,12 @@ from email import message_from_string
 
 def list_folders(parent_folder):
     # list the folders in the parent folder
-    onlyfolder = [os.path.join(parent_folder, f) for f in os.listdir(parent_folder) if not os.path.isfile(os.path.join(parent_folder, f))]
-    return onlyfolder
+    onlyfolders = [item for item in parent_folder.iterdir() if item.is_dir()]
+    return onlyfolders
 
 def list_files(parent_folder):
     # list the files in the parent folder
-    onlyfiles = [os.path.join(parent_folder, f) for f in os.listdir(parent_folder) if os.path.isfile(os.path.join(parent_folder, f))]
-    return onlyfiles
-
+    onlyfiles = [item for item in parent_folder.iterdir() if item.is_file()]
 def clean_email_attr(email_attr):
     # clean the email attributes
     # takes in a string of email attributes and resturns a list of cleaned email attributes
@@ -44,7 +42,7 @@ def merge_attr_and_x(email_attr, email_attr_x):
     merged_email = [x for x in email_attr if not x.startswith('.')] + email_attr_x
     return ','.join(merged_email)
 
-def extract_email_data(main_folder, file_path, sub_folder=None):
+def extract_email_data(file_path):
     # extract the email data from the file
     with open(file_path, encoding = "ISO-8859-1") as f:
             print("file read: " + file)
@@ -75,8 +73,6 @@ def extract_email_data(main_folder, file_path, sub_folder=None):
             # extract the email body
             email_body = parsed_mail.get_payload().replace('"','\'')
 
-
-
             # create a dictionary to store the email attributes
             email_dict = {}
             # add the email attributes to the dictionary
@@ -88,22 +84,17 @@ def extract_email_data(main_folder, file_path, sub_folder=None):
             email_dict['email_cc'] = merge_attr_and_x(email_cc, email_x_cc)
             email_dict['email_bcc'] = merge_attr_and_x(email_bcc, email_x_bcc)
             email_dict['email_body'] = clean_subject_body(email_body)
-            email_dict['main_folder'] = main_folder
-            email_dict['sub_folder'] = sub_folder
-            
+
             # write the dictionary to the output file
             with open(out_file, 'a', encoding="utf-8") as outfile:
                 json.dump(email_dict, outfile)
                 outfile.write('\n')
 
-# detect current file path
-path = os.path.dirname(os.path.abspath(__file__))
-
 # define the input and output file paths
-in_folder = os.path.join(path, 'data/enron')
+in_folder = pathlib.Path('/opt/maildir/')
 
 # define the path to the output file
-out_file = os.path.join(os.path.join(path, 'data'), 'enron_emails.json')
+out_file = pathlib.Path('/opt/enron_processed/enron_emails.json')
 
 # extract list of folders in the enron dataset
 enron_folders = list_folders(in_folder)
@@ -114,12 +105,9 @@ for folder in enron_folders:
     # extract list of files in each folder
     enron_files = list_files(folder)
     
-    # get main folder name
-    main_folder = (folder.split('/')[-1])
-
     # extract emails in the main folder 
     for file in enron_files:
-        extract_email_data(main_folder, file)
+        extract_email_data(file)
     
     # extract emails in the sub folders
     sub_folders = list_folders(folder)
@@ -129,10 +117,7 @@ for folder in enron_folders:
         # extract list of files in each sub folder
         sub_files = list_files(sub_folder)
         
-        # get sub folder name
-        sub_folder = (sub_folder.split('/')[-1])
-
         # extract emails in the sub folder
         for file in sub_files:
-            extract_email_data(main_folder, file, sub_folder)
+            extract_email_data(file)
 
