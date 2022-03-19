@@ -1,0 +1,14 @@
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: Download email dataset
+      get_url:
+        url: https://www.cs.cmu.edu/~enron/enron_mail_20150507.tar.gz
+        dest: /opt/enron_mail.tar.gz
+
+    - name: unzip email dataset
+      ansible.builtin.unarchive:
+        src: /opt/enron_mail.tar.gz
+        dest: /opt
+        remote_src: yes
