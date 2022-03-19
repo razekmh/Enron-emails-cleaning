@@ -8,7 +8,27 @@
         dest: /opt/enron_mail.tar.gz
 
     - name: unzip email dataset
-      ansible.builtin.unarchive:
+      unarchive:
         src: /opt/enron_mail.tar.gz
         dest: /opt
         remote_src: yes
+
+    - name: create folder for python scripts
+      file:
+        path: /opt/utils
+        state: directory
+
+    - name: create folder for processed data
+      file:
+        path: /opt/enron_processed
+        state: directory
+
+    - name: copy python scripts
+      synchronize:
+        src: /opt/Enron-emails-cleaning/utils
+        dest: /opt/utils
+      delegate_to: "{{ inventory_hostname }}"
+
+    - name: extract emails to one json
+      script: /opt/utils/enron_extract_emails.py
+
