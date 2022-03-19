@@ -6,6 +6,14 @@ and analysis.
 The dataset is offered by CMU [here](https://www.cs.cmu.edu/~enron/). 
 You can use the [editor on GitHub](https://github.com/razekmh/Enron-emails-cleaning/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
 
+
+first install ansible
+apt-get install ansible
+
+then install ansible extensions
+ansible-galaxy collection install community.docker
+
+
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
 ### Markdown
