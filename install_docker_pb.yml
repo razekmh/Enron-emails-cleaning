@@ -25,6 +25,7 @@
           - gnupg2
           - curl
           - rsync
+          - python3-pip
     - name: Add Apt signing key from official docker repo
       apt_key:
         url: https://download.docker.com/linux/debian/gpg
