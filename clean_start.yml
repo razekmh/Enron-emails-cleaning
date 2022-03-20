@@ -1,0 +1,8 @@
+- hosts: all
+  become: yes
+  tasks:
+
+    - name: delete processed folder
+      file:
+        state: absent
+        path: /opt/enron_processed/
