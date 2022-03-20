@@ -14,24 +14,13 @@
         creates: /opt/maildir/
         remote_src: yes
 
-    - name: create folder for python scripts
-      file:
-        path: /opt/utils
-        state: directory
-
     - name: create folder for processed data
       file:
         path: /opt/enron_processed
         state: directory
     
-    - name: copy python scripts
-      synchronize:
-        src: utils/
-        dest: /opt/utils/
-
     - name: extract emails to one json
       script: utils/enron_extract_emails.py
       args:
-        ignore_errors: yes
         creates: /opt/enron_processed/enron_emails.json
 
