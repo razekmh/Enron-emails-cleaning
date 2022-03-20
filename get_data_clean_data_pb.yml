@@ -1,5 +1,5 @@
 - hosts: all
-  become: yes
+  become: no
   tasks:
 
     - name: Download email dataset
@@ -11,6 +11,7 @@
       unarchive:
         src: /opt/enron_mail.tar.gz
         dest: /opt
+        creates: /opt/maildir/
         remote_src: yes
 
     - name: create folder for python scripts
@@ -22,13 +23,15 @@
       file:
         path: /opt/enron_processed
         state: directory
-
+    
     - name: copy python scripts
       synchronize:
-        src: /opt/Enron-emails-cleaning/utils
-        dest: /opt/utils
-      delegate_to: "{{ inventory_hostname }}"
+        src: utils/
+        dest: /opt/utils/
 
     - name: extract emails to one json
-      script: /opt/utils/enron_extract_emails.py
+      script: utils/enron_extract_emails.py
+      args:
+        ignore_errors: yes
+        creates: /opt/enron_processed/enron_emails.json
 

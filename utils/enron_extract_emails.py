@@ -1,9 +1,7 @@
-'''extract the emails and their attributes from the enron dataset'''
+#!/usr/bin/python3
 
-# import modules
 import json
 import pathlib
-import os
 import re
 from email import message_from_string
 
@@ -15,6 +13,8 @@ def list_folders(parent_folder):
 def list_files(parent_folder):
     # list the files in the parent folder
     onlyfiles = [item for item in parent_folder.iterdir() if item.is_file()]
+    return onlyfiles
+
 def clean_email_attr(email_attr):
     # clean the email attributes
     # takes in a string of email attributes and resturns a list of cleaned email attributes
@@ -45,7 +45,7 @@ def merge_attr_and_x(email_attr, email_attr_x):
 def extract_email_data(file_path):
     # extract the email data from the file
     with open(file_path, encoding = "ISO-8859-1") as f:
-            print("file read: " + file)
+            print("file read: " + str(file_path))
             # read the file
             content = f.read()
             # parse the email data
