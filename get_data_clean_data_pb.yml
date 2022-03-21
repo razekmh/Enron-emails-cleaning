@@ -47,8 +47,21 @@
       script: utils/postgresql_drop_duplicates.py
       args:
         creates: /opt/enron_processed/enron_postgresql/unique_users.csv
-   
+
+    - name: Postgresql - copy roles.txt
+      copy:
+        src: utils/roles.txt
+        dest: /opt/enron_processed/enron_postgresql/roles.txt
+        owner: root
+        group: root
+        mode: '755' 
+ 
     - name: Postgresql - make relationships
       script: utils/postgresql_make_relationships.py
       args:
         creates: /opt/enron_processed/enron_postgresql/unique_email_users.csv
+   
+    - name: Postgresql - match names with roles
+      script: utils/postgresql_match_names_external.py
+      args:
+        creates: /opt/enron_processed/enron_postgresql/unique_users_with_names.csv
