@@ -33,9 +33,17 @@
 
     - name: Postgresql - install python lib
       pip:
-        name: python-dateutil
-
+        name: "{{ packagesdep }}"
+      vars:
+        packagesdep:
+          - python-dateutil
+          - pandas
     - name: Postgresql - split data to tables
       script: utils/enron_to_postgresql.py
       args:
         creates: /opt/enron_processed/enron_postgresql/emails.csv
+
+    - name: Postgresql - drop duplicates
+      script: utils/postgresql_drop_duplicates.py
+      args:
+        creates: /opt/enron_processed/enron_postgresql/unique_users.csv
