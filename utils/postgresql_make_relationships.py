@@ -1,19 +1,18 @@
-import os
+#!/usr/bin/python3
+
+import pathlib
 import pandas as pd
 
-# detect current file path
-path = os.path.dirname(os.path.abspath(__file__))
-
 # define the location of the enron dataset
-enron_file = os.path.join(path, 'data/enron_postgres')
+enron_file = pathlib.Path('/opt/enron_processed/enron_postgresql/')
 
 # read users table
-users_table = os.path.join(enron_file, 'unique_users.csv')
+users_table = enron_file / 'unique_users.csv'
 df_users = pd.read_csv(users_table, encoding="utf-8")
 print("read users table")
 
 # read email_users table
-email_users_table = os.path.join(enron_file, 'email_users.csv')
+email_users_table = enron_file / 'email_users.csv'
 df_email_users = pd.read_csv(email_users_table, encoding="utf-8")
 print("read email_users table")
 
@@ -54,4 +53,4 @@ df_email_users['email_message_id'] = df_email_users['email_message_id'].str.stri
 df_email_users['transaction_type'] = df_email_users['transaction_type'].str.strip()
 
 # export to csv with cast to int
-df_email_users.astype({"receiver": "int32"}).to_csv(os.path.join(enron_file, 'unique_email_users.csv'), index=False)
+df_email_users.astype({"receiver": "int32"}).to_csv(enron_file / 'unique_email_users.csv', index=False)

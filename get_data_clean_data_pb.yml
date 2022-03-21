@@ -47,3 +47,8 @@
       script: utils/postgresql_drop_duplicates.py
       args:
         creates: /opt/enron_processed/enron_postgresql/unique_users.csv
+   
+    - name: Postgresql - make relationships
+      script: utils/postgresql_make_relationships.py
+      args:
+        creates: /opt/enron_processed/enron_postgresql/unique_email_users.csv
