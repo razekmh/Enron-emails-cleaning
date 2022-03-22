@@ -6,7 +6,8 @@
   
   - name: create postgresql anchor folder
     file:
-      path: /opt/postgresql_anchor/
+      path: /opt/postgresql_anchor
+      state: directory
 
   - name: copy init sql script to anchor folder
     copy:
