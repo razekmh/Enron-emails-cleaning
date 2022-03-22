@@ -1,0 +1,43 @@
+- name: build database and import data
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  hosts: all
+  tasks: 
+  
+  - name: create postgresql anchor folder
+    file:
+      path: /opt/postgresql_anchor/
+
+  - name: copy init sql script to anchor folder
+    copy:
+      src: /opt/Enron-emails-cleaning/utils/postgresql_init.sh 
+      dest: /opt/postgresql_anchor/01-init.sh
+
+  - name: build postgresql
+    community.docker.docker_compose:
+      project_name: postgresql
+      definition:
+        services:
+          pg_container:
+            image: postgres
+            restart: always
+            environment:
+              POSTGRES_USER: root
+              POSTGRES_PASSWORD: root
+              POSTGRES_DB: test_db
+              APP_DB_USER: docker
+              APP_DB_PASS: docker
+              APP_DB_NAME: docker
+            ports:
+              - "5432:5432"
+            volumes:
+              - /opt/postgresql_anchor:/docker-entrypoint-initdb.d/
+    
+          pgadmin4_container:
+            image: dpage/pgadmin4
+            restart: always
+            environment:
+              PGADMIN_DEFAULT_EMAIL: admin@admin.com
+              PGADMIN_DEFAULT_PASSWORD: root
+            ports:
+              - "5050:80"

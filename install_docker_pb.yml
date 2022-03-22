@@ -1,5 +1,7 @@
 ---
 - hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
   tasks:
     - name: Update the apt package index
       become: yes
@@ -50,3 +52,9 @@
         url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
         dest: /usr/local/bin/docker-compose
         mode: 'u+x,g+x'
+    
+    - name: install python sdk
+      pip:
+        name: 
+          - docker 
+          - docker-compose
