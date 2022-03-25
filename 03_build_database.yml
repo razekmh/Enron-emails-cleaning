@@ -45,8 +45,9 @@
   - name: build postgresql
     register: docker_container_output
     community.docker.docker_compose:
-      project_name: postgresql
+      project_name: databases
       definition:
+        version: '3.3'
         services:
           pg_container:
             image: postgres
@@ -71,18 +72,55 @@
               PGADMIN_DEFAULT_PASSWORD: root
             ports: 
               - "5050:80"
-    
-  - name: wait for port 5050
+          elasticsearch:
+            container_name: es-container
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+            environment:
+              - xpack.security.enabled=false
+              - "discovery.type=single-node"
+            networks:
+              - es-net
+            ports:
+              - 9200:9200
+          kibana:
+            container_name: kb-container
+            image: docker.elastic.co/kibana/kibana:7.11.0
+            environment:
+              - ELASTICSEARCH_HOSTS=http://es-container:9200
+            networks:
+              - es-net
+            depends_on: 
+              - "elasticsearch"
+            ports:
+              - 5601:5601
+          
+          neo4j:
+            image: neo4j:3.5
+            restart: unless-stopped
+            ports:
+              - 7474:7474
+              - 7687:7687
+            volumes:
+              - /opt/neo4j_anchor/conf:/conf
+              - /opt/neo4j_anchor/data:/data
+              - /opt/neo4j_anchor/import:/import
+              - /opt/neo4j_anchor/logs:/logs
+              - /opt/neo4j_anchor/plugins:/plugins
+            environment: 
+              - NEO4J_AUTH="neo4j/neo4j"
+          
+        networks:
+          es-net:
+            driver: bridge             
+ 
+  - name: sleep for 30 sec to wait for postgresql server
     wait_for:
       timeout: 30
     delegate_to: localhost
 
   - name: run the sql script
     community.docker.docker_container_exec:
-      container: postgresql_pg_container_1
+      container: databases_pg_container_1
       command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
     register: sql_script_output
 
-  - name: Show test output
-    debug:
-      msg: "{{ sql_script_output }}"
