@@ -96,7 +96,7 @@
           
           neo4j:
             image: neo4j:3.5
-            restart: unless-stopped
+            restart: always
             ports:
               - 7474:7474
               - 7687:7687
@@ -107,8 +107,11 @@
               - /opt/neo4j_anchor/logs:/logs
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
-              - NEO4J_AUTH="neo4j/neo4j"
-          
+              - NEO4J_AUTH=neo4j/somepassword
+              - NEO4J_dbms_memory_pagecache_size=1G
+              - NEO4J_dbms.memory.heap.initial_size=1G
+              - NEO4J_dbms_memory_heap_max__size=1G   
+    
         networks:
           es-net:
             driver: bridge             
