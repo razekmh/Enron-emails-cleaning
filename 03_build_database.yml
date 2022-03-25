@@ -8,13 +8,42 @@
     file:
       path: /opt/postgresql_anchor
       state: directory
+  
+  - name: create postgresql scripts folder
+    file: 
+      path: /opt/postgresql_scripts
+      state: directory
 
-  - name: copy init sql script to anchor folder
+  - name: copy init bash script to anchor folder
     copy:
-      src: /opt/Enron-emails-cleaning/utils/postgresql_init.sh 
+      src: /opt/Enron-emails-cleaning/utils/postgresql_init.sh
       dest: /opt/postgresql_anchor/01-init.sh
 
+  - name: copy init sql no user script to anchor folder
+    copy:
+      src: /opt/Enron-emails-cleaning/utils/postgresql_init_nouser.sql
+      dest: /opt/postgresql_scripts/02-init.sql
+  
+  - name: copy emails
+    copy:
+      src: /opt/enron_processed/enron_postgresql/emails.csv
+      dest: /opt/postgresql_anchor/emails.csv
+      remote_src: yes
+
+  - name: copy users
+    copy:
+      src: /opt/enron_processed/enron_postgresql/unique_users_with_names.csv
+      dest: /opt/postgresql_anchor/unique_users_with_names.csv
+      remote_src: yes
+
+  - name: copy rel
+    copy:
+      src: /opt/enron_processed/enron_postgresql/unique_email_users.csv
+      dest: /opt/postgresql_anchor/unique_email_users.csv
+      remote_src: yes
+
   - name: build postgresql
+    register: docker_container_output
     community.docker.docker_compose:
       project_name: postgresql
       definition:
@@ -23,7 +52,7 @@
             image: postgres
             restart: always
             environment:
-              POSTGRES_USER: root
+              POSTGRES_USER: razekmh
               POSTGRES_PASSWORD: root
               POSTGRES_DB: test_db
               APP_DB_USER: docker
@@ -33,12 +62,27 @@
               - "5432:5432"
             volumes:
               - /opt/postgresql_anchor:/docker-entrypoint-initdb.d/
-    
+              - /opt/postgresql_scripts:/opt/    
           pgadmin4_container:
             image: dpage/pgadmin4
             restart: always
             environment:
               PGADMIN_DEFAULT_EMAIL: admin@admin.com
               PGADMIN_DEFAULT_PASSWORD: root
-            ports:
+            ports: 
               - "5050:80"
+    
+  - name: wait for port 5050
+    wait_for:
+      timeout: 30
+    delegate_to: localhost
+
+  - name: run the sql script
+    community.docker.docker_container_exec:
+      container: postgresql_pg_container_1
+      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
+    register: sql_script_output
+
+  - name: Show test output
+    debug:
+      msg: "{{ sql_script_output }}"
