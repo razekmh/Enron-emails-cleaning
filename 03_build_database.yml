@@ -4,44 +4,23 @@
   hosts: all
   tasks: 
   
-  - name: create postgresql anchor folder
+  - name: create database directories
     file:
-      path: /opt/postgresql_anchor
+      path: "{{ item }}"
       state: directory
+    loop:
+      - /opt/postgresql_anchor
+      - /opt/postgresql_scripts
   
-  - name: create postgresql scripts folder
-    file: 
-      path: /opt/postgresql_scripts
-      state: directory
-
-  - name: copy init bash script to anchor folder
-    copy:
-      src: /opt/Enron-emails-cleaning/utils/postgresql_init.sh
-      dest: /opt/postgresql_anchor/01-init.sh
-
-  - name: copy init sql no user script to anchor folder
-    copy:
-      src: /opt/Enron-emails-cleaning/utils/postgresql_init_nouser.sql
-      dest: /opt/postgresql_scripts/02-init.sql
+  - name: copy data ans secipts
+    copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
+    with_items:
+      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init.sh', dest: '/opt/postgresql_anchor/01-init.sh', remote: 'no' }
+      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_nouser.sql', dest: '/opt/postgresql_scripts/02-init.sql', remote: 'no' }
+      - { src: '/opt/enron_processed/enron_postgresql/emails.csv', dest: '/opt/postgresql_anchor/emails.csv', remote: 'yes' }    
+      - { src: '/opt/enron_processed/enron_postgresql/unique_users_with_names.csv', dest: '/opt/postgresql_anchor/unique_users_with_names.csv', remote: 'yes' }  
+      - { src: '/opt/enron_processed/enron_postgresql/unique_email_users.csv', dest: '/opt/postgresql_anchor/unique_email_users.csv', remote: 'yes' } 
   
-  - name: copy emails
-    copy:
-      src: /opt/enron_processed/enron_postgresql/emails.csv
-      dest: /opt/postgresql_anchor/emails.csv
-      remote_src: yes
-
-  - name: copy users
-    copy:
-      src: /opt/enron_processed/enron_postgresql/unique_users_with_names.csv
-      dest: /opt/postgresql_anchor/unique_users_with_names.csv
-      remote_src: yes
-
-  - name: copy rel
-    copy:
-      src: /opt/enron_processed/enron_postgresql/unique_email_users.csv
-      dest: /opt/postgresql_anchor/unique_email_users.csv
-      remote_src: yes
-
   - name: build postgresql
     register: docker_container_output
     community.docker.docker_compose:

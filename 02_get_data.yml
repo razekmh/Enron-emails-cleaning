@@ -38,6 +38,7 @@
         packagesdep:
           - python-dateutil
           - pandas
+
     - name: Postgresql - split data to tables
       script: utils/enron_to_postgresql.py
       args:
