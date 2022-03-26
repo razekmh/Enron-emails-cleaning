@@ -26,18 +26,19 @@
       args:
         creates: /opt/enron_processed/enron_emails.json
     
-    - name: Postgresql - create folder for data
-      file:
-        path: /opt/enron_processed/enron_postgresql
-        state: directory
-
-    - name: Postgresql - install python lib
+    - name: install python lib
       pip:
         name: "{{ packagesdep }}"
       vars:
         packagesdep:
           - python-dateutil
           - pandas
+          - pytz
+
+    - name: Postgresql - create folder for data
+      file:
+        path: /opt/enron_processed/enron_postgresql
+        state: directory
 
     - name: Postgresql - split data to tables
       script: utils/enron_to_postgresql.py
@@ -66,3 +67,15 @@
       script: utils/postgresql_match_names_external.py
       args:
         creates: /opt/enron_processed/enron_postgresql/unique_users_with_names.csv
+
+    - name: Elasticsearch - create folder for data
+      file:
+        path: /opt/enron_processed/enron_es
+        state: directory
+
+    - name: Elasticsearch - transform data
+      script: utils/enron_to_elasticsearch.py
+      args:
+        creates: /opt/enron_processed/enron_es/enron_emails_elasticsearch.json
+
+   

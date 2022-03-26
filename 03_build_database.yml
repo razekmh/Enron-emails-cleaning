@@ -100,6 +100,15 @@
       timeout: 30
     delegate_to: localhost
 
+  - name: call es import
+    uri:
+      url: localhost:9200/emails/doc/_bulk?pretty
+      method: POST
+      body_format: raw
+      body: "{{ lookup('file','/opt/enron_processed/enron_es/enron_emails_elasticsearch.json') }}"
+      headers:
+        Content-Type: application/json
+
   - name: run the sql script
     community.docker.docker_container_exec:
       container: databases_pg_container_1
