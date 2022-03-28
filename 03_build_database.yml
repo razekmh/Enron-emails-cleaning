@@ -1,4 +1,5 @@
 - name: build database and import data
+  become: yes
   vars:
     ansible_python_interpreter: /usr/bin/python3
   hosts: all
@@ -11,6 +12,7 @@
     loop:
       - /opt/postgresql_anchor
       - /opt/postgresql_scripts
+      - /opt/es_anchor
   
   - name: copy data ans secipts
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
@@ -20,7 +22,8 @@
       - { src: '/opt/enron_processed/enron_postgresql/emails.csv', dest: '/opt/postgresql_anchor/emails.csv', remote: 'yes' }    
       - { src: '/opt/enron_processed/enron_postgresql/unique_users_with_names.csv', dest: '/opt/postgresql_anchor/unique_users_with_names.csv', remote: 'yes' }  
       - { src: '/opt/enron_processed/enron_postgresql/unique_email_users.csv', dest: '/opt/postgresql_anchor/unique_email_users.csv', remote: 'yes' } 
-  
+      - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
+ 
   - name: build postgresql
     register: docker_container_output
     community.docker.docker_compose:
@@ -94,22 +97,21 @@
         networks:
           es-net:
             driver: bridge             
- 
-  - name: sleep for 30 sec to wait for postgresql server
-    wait_for:
-      timeout: 30
-    delegate_to: localhost
 
-  - name: call es import
+  - name: Pause play until a elasticsearch is reachable
     uri:
-      url: localhost:9200/emails/doc/_bulk?pretty
-      method: POST
-      body_format: raw
-      body: "{{ lookup('file','/opt/enron_processed/enron_es/enron_emails_elasticsearch.json') }}"
-      headers:
-        Content-Type: application/json
+      url: "http://127.0.0.1:9200"
+      follow_redirects: none
+      method: GET
+    register: _result
+    until: _result.status == 200
+    retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+    delay: 5 # Every 5 seconds
 
-  - name: run the sql script
+  - name: import data to elasticsearch
+    command: /bin/sh /opt/es_anchor/elasticsearch_import.sh
+
+  - name: import data to postgresql
     community.docker.docker_container_exec:
       container: databases_pg_container_1
       command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
