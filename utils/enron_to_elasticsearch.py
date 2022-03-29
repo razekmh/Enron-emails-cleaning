@@ -36,7 +36,7 @@ def write_line(line):
 # read in json file line by line
 with open(input_path, 'r') as f:
     for line in f:
-        if counter < 30000:
+#        if counter < 30000:
             # convert line to json
             email = json.loads(line)
             # convert date to utc

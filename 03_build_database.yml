@@ -76,6 +76,18 @@
             ports:
               - 5601:5601
           
+          logstash:
+            container_name: logstash-contanier
+            image: docker.elastic.co/logstash/logstash:7.11.0
+            networks: 
+              - es-net
+            depends_on:
+              - "elasticsearch"
+            ports:
+              - 5044:5044
+              - 5000:5000
+              - 9600:9600
+          
           neo4j:
             image: neo4j:3.5
             restart: always
@@ -90,10 +102,10 @@
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
               - NEO4J_AUTH=neo4j/somepassword
-              - NEO4J_dbms_memory_pagecache_size=1G
-              - NEO4J_dbms.memory.heap.initial_size=1G
-              - NEO4J_dbms_memory_heap_max__size=1G   
-    
+              - NEO4J_dbms_memory_pagecache_size=4G
+              - NEO4J_dbms.memory.heap.initial_size=4G
+              - NEO4J_dbms_memory_heap_max__size=4G   
+              
         networks:
           es-net:
             driver: bridge             
@@ -110,6 +122,7 @@
 
   - name: import data to elasticsearch
     command: /bin/sh /opt/es_anchor/elasticsearch_import.sh
+    register: es_output
 
   - name: import data to postgresql
     community.docker.docker_container_exec:
