@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 '''
 create a neo4j input file from the enron dataset
 '''
@@ -5,15 +6,13 @@ create a neo4j input file from the enron dataset
 # import libraries
 import pathlib
 import pandas as pd
-
-# find path to this file
-path = pathlib.Path(__file__).parent.absolute()
+import csv
 
 # define the path to the enron dataset
-enron_pg_path = pathlib.Path(path, pathlib.Path('data/enron_postgres'))
+enron_pg_path = pathlib.Path('/opt/enron_processed/enron_postgresql')
 
 # define the path to the neo4j file
-enron_neo4j_path = pathlib.Path(path, pathlib.Path('data/enron_neo4j'))
+enron_neo4j_path = pathlib.Path('/opt/enron_processed/enron_neo4j')
 
 # read users csv
 df_users = pd.read_csv(enron_pg_path / 'unique_users_with_names.csv')
@@ -24,32 +23,33 @@ df_emails = pd.read_csv(enron_pg_path / 'emails.csv', usecols=['email_message_id
 # read transactions csv
 df_transactions = pd.read_csv(enron_pg_path / 'unique_email_users.csv')
 
-# # create user nodes
-# with open (enron_neo4j_path / 'nodes.txt', 'w') as users_file:
-#     users_file.write("CREATE (user_000000:Person);" + '\n')
-#     for index, row in df_users.iterrows():
-#         # clean email address
-#         user_email = row['user_email'].replace("'", "")
-#         # standardize user id
-#         user_id = "user_" + str(row['user_id']).zfill(6)
-#         # write user node
-#         users_file.write(f"CREATE ({user_id}:Person {{email_address:'{user_email}'")
-#         users_file.write(f",user_id:'{user_id}'")
-#         if row['first_name'] != 'None' and not pd.isna(row['first_name']):
-#             # clean first name
-#             user_first_name = row['first_name'].replace("'", "")
-#             users_file.write(f", first_name:'{user_first_name}'")
-#         if row['last_name'] != 'None' and not pd.isna(row['last_name']):
-#             # clean last name
-#             user_last_name = row['last_name'].replace("'", "")
-#             users_file.write(f", last_name:'{user_last_name}'")
-#         if not pd.isna(row['rank']):
-#             users_file.write(f", rank:'{row['rank'].lower()}'")
-#         if not pd.isna(row['role']):
-#             users_file.write(f", role:'{row['role'].lower()}'")
-#         if not pd.isna(row['company']):
-#             users_file.write(f", company:'{row['company'].lower()}'")
-#         users_file.write("});\n")
+# create user nodes
+with open (enron_neo4j_path / 'nodes.csv', "w") as users_file:
+    fieldnames = ["user_id","user_email","first_name","last_name","rank"]  
+    nodes_writer = csv.DictWriter( users_file, delimiter=',', quoting=csv.QUOTE_ALL, fieldnames=fieldnames)
+    nodes_writer.writerow({"user_id":"user_id:ID","user_email":"user_email","first_name":"first_name","last_name":"last_name","rank":"rank"}) 
+    nodes_writer.writerow({"user_id":"user_000000"})
+    for index, row in df_users.iterrows():
+        #clean email address
+        row['user_email'] = row['user_email'].replace("'", "")
+        #standardize user id
+        row['user_id'] = "user_" + str(row['user_id']).zfill(6)
+        if row['first_name'] != 'None' and not pd.isna(row['first_name']):
+            # clean first name
+            row['first_name'] = row['first_name'].replace("'", "")
+        else:
+            row['first_name'] = ''
+        if row['last_name'] != 'None' and not pd.isna(row['last_name']):
+            # clean last name
+            row['last_name'] = row['last_name'].replace("'", "")
+        else: 
+            row['last_name'] = ''
+        if not pd.isna(row['rank']):
+            pass
+        else:
+            row['rank'] = ''
+        
+        nodes_writer.writerow(row)
 
 # # create email relationships
 df_relationships = pd.merge(df_transactions, df_emails, on='email_message_id', how='left')

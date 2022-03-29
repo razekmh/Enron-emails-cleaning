@@ -78,4 +78,12 @@
       args:
         creates: /opt/enron_processed/enron_es/enron_emails_elasticsearch.json
 
-   
+    - name: Neo4j - create folder for data
+      file:
+        path: /opt/enron_processed/enron_neo4j
+        state: directory
+
+    - name: Neo4J - transform data
+      script: utils/enron_to_neo4j.py
+      args:
+        creates: /opt/enron_processed/enron_neo4j/relationsips.txt   

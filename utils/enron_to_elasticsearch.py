@@ -28,8 +28,6 @@ def write_line(line):
     writes a line to the output file
     '''
     with open(output_path, 'a') as f:
-        creator_line = f'{{"create": {{"_index": "enron_emails", "_id": "{line["email_message_id"]}"}} }}\n'
-        f.write(creator_line)
         f.write(json.dumps(line))
         f.write('\n')
 
