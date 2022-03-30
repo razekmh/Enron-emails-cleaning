@@ -100,7 +100,7 @@
               - 7687:7687
             volumes:
               - /opt/neo4j_anchor/conf:/conf
-              - /opt/neo4j_anchor/data:/data
+              - /opt/enron_processed/enron_neo4j:/data
               - /opt/neo4j_anchor/import:/import
               - /opt/neo4j_anchor/logs:/logs
               - /opt/neo4j_anchor/plugins:/plugins
@@ -124,13 +124,15 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
 
-      #  - name: import data to elasticsearch
-      #    command: /bin/sh /opt/es_anchor/elasticsearch_import.sh
-      #      register: es_output
-
   - name: import data to postgresql
     community.docker.docker_container_exec:
       container: databases_pg_container_1
       command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
-    register: sql_script_output
+    register: postgresql_script_output
+ 
+  - name: import data to neo4j
+    community.docker.docker_container_exec:
+      container: databases_neo4j_1
+      command: bin/bash -c "bin/neo4j-admin import --database=neo4j --nodes=/data/nodes.csv --relationships=/data/relationships.csv"
+    register: neo4j_script_output
 
