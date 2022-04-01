@@ -45,3 +45,9 @@ CREATE TABLE eamil_transaction (
 		);
 
 COPY eamil_transaction FROM '/docker-entrypoint-initdb.d/unique_email_users.csv' DELIMITER ',' CSV HEADER;
+
+
+GRANT USAGE ON SCHEMA public TO user01;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO user01;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO user01;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO user01;

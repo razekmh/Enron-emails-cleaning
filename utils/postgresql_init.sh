@@ -10,7 +10,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	GRANT CONNECT ON DATABASE $APP_DB_NAME TO user01;
 EOSQL
 
-psql -v ON_ERROR_STOP=1 --username "$APP_DB_USER" --pasword "$APP_DB_PASS" --dbname "$APP_DB_NAME" <<-EOSQL
+psql --username "$APP_DB_USER" --pasword "$APP_DB_PASS" --dbname "$APP_DB_NAME" <<-EOSQL
 	GRANT USAGE ON SCHEMA public TO user01;
 	GRANT SELECT ON ALL TABLES IN SCHEMA public TO user01;
 	GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO user01;
