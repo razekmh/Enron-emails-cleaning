@@ -12,7 +12,7 @@ from dateutil import parser
 
 
 # set timezone and format
-utc = utc = pytz.utc
+utc = pytz.utc
 fmt = '%Y-%m-%d %H:%M:%S'
 
 # set the input and output paths

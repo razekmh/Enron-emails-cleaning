@@ -13,7 +13,9 @@
       - /opt/postgresql_anchor
       - /opt/postgresql_scripts
       - /opt/es_anchor
-  
+      - /opt/neo4j_anchor/conf_init
+      - /opt/neo4j_anchor/data
+
   - name: copy data ans secipts
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
     with_items:
@@ -24,7 +26,9 @@
       - { src: '/opt/enron_processed/enron_postgresql/unique_email_users.csv', dest: '/opt/postgresql_anchor/unique_email_users.csv', remote: 'yes' } 
       - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
       - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
- 
+      - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
+        
+
   - name: build postgresql
     register: docker_container_output
     community.docker.docker_compose:
@@ -58,6 +62,7 @@
           elasticsearch:
             container_name: es-container
             image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+            restart: always
             environment:
               - xpack.security.enabled=false
               - "discovery.type=single-node"
@@ -68,6 +73,7 @@
           kibana:
             container_name: kb-container
             image: docker.elastic.co/kibana/kibana:7.11.0
+            restart: always
             environment:
               - ELASTICSEARCH_HOSTS=http://es-container:9200
             networks:
@@ -80,6 +86,7 @@
           logstash:
             container_name: logstash-contanier
             image: docker.elastic.co/logstash/logstash:7.11.0
+            restart: always
             networks: 
               - es-net
             command: sh -c "logstash -f /etc/logstash/conf.d/logstash.conf"
@@ -99,9 +106,9 @@
               - 7474:7474
               - 7687:7687
             volumes:
-              - /opt/neo4j_anchor/conf:/conf
-              - /opt/enron_processed/enron_neo4j:/data
-              - /opt/neo4j_anchor/import:/import
+              - /opt/neo4j_anchor/conf_init:/conf
+              - /opt/enron_processed/enron_neo4j:/import
+              - /opt/neo4j_anchor/data:/data
               - /opt/neo4j_anchor/logs:/logs
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
@@ -124,15 +131,21 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
 
-  - name: import data to postgresql
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
-    register: postgresql_script_output
- 
+      #  - name: import data to postgresql
+      #    community.docker.docker_container_exec:
+      #      container: databases_pg_container_1
+      #      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
+      #    register: postgresql_script_output
+      
   - name: import data to neo4j
     community.docker.docker_container_exec:
       container: databases_neo4j_1
-      command: bin/bash -c "bin/neo4j-admin import --database=neo4j --nodes=/data/nodes.csv --relationships=/data/relationships.csv"
+      command: sh "/var/lib/neo4j/conf/neo4j_init.sh"
     register: neo4j_script_output
+ 
+      #  - name: import data to neo4j
+      #    community.docker.docker_container_exec:
+      #      container: databases_neo4j_1
+      #      command: neo4j-admin import --database=neo4j --nodes=/import/nodes.csv --relationships=/import/relationships.csv
+      #    register: neo4j_script_output
 
