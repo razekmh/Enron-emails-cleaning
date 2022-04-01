@@ -16,7 +16,16 @@ RETURN count(u);"
 cypher-shell -u neo4j -p somepassword "
 USING PERIODIC COMMIT 100
 LOAD CSV WITH HEADERS FROM 'file:///relationships_subset.csv' AS row
+WITH row
 MATCH (s:User {user_id: row.sender})
 MATCH (r:User {user_id: row.receiver})
-MERGE (s)-[:SENT_TO {email_date:row.email_date, email_subject:row.email_subject, email_message_id:row.email_message_id, routing:row.routing}]->(r)
-RETURN count(r);"
+FOREACH (_ IN CASE WHEN row.transaction_type='to' THEN [1] ELSE [] END |
+MERGE (s)-[:TO {email_date:row.email_date, email_subject:row.email_subject, email_message_id:row.email_message_id, routing:row.routing}]->(r)
+  )
+FOREACH (_ IN CASE WHEN row.transaction_type='bcc' THEN [1] ELSE [] END |
+MERGE (s)-[:BCC {email_date:row.email_date, email_subject:row.email_subject, email_message_id:row.email_message_id, routing:row.routing}]->(r)
+  )
+FOREACH (_ IN CASE WHEN row.transaction_type='cc' THEN [1] ELSE [] END |
+MERGE (s)-[:CC {email_date:row.email_date, email_subject:row.email_subject, email_message_id:row.email_message_id, routing:row.routing}]->(r)
+  )
+;"
