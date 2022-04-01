@@ -59,6 +59,7 @@
               PGADMIN_DEFAULT_PASSWORD: root
             ports: 
               - "5050:80"
+
           elasticsearch:
             container_name: es-container
             image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
@@ -70,6 +71,7 @@
               - es-net
             ports:
               - 9200:9200
+
           kibana:
             container_name: kb-container
             image: docker.elastic.co/kibana/kibana:7.11.0
@@ -99,6 +101,7 @@
             volumes:
               - /opt/es_anchor/logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
               - /opt/enron_processed/enron_es/enron_emails_elasticsearch.json:/opt/enron_emails_elasticsearch.json:ro 
+
           neo4j:
             image: neo4j:3.5
             restart: always
@@ -131,11 +134,11 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
 
-      #  - name: import data to postgresql
-      #    community.docker.docker_container_exec:
-      #      container: databases_pg_container_1
-      #      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
-      #    register: postgresql_script_output
+  - name: import data to postgresql
+    community.docker.docker_container_exec:
+      container: databases_pg_container_1
+      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
+    register: postgresql_script_output
       
   - name: import data to neo4j
     community.docker.docker_container_exec:
@@ -143,9 +146,4 @@
       command: sh "/var/lib/neo4j/conf/neo4j_init.sh"
     register: neo4j_script_output
  
-      #  - name: import data to neo4j
-      #    community.docker.docker_container_exec:
-      #      container: databases_neo4j_1
-      #      command: neo4j-admin import --database=neo4j --nodes=/import/nodes.csv --relationships=/import/relationships.csv
-      #    register: neo4j_script_output
 
