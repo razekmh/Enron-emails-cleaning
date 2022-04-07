@@ -94,7 +94,7 @@ def extract_email_data(file_path):
 in_folder = pathlib.Path('/opt/maildir/')
 
 # define the path to the output file
-out_file = pathlib.Path('/opt/enron_processed/enron_emails.json')
+out_file = pathlib.Path('/opt/enron_processed/enron_emails_unfiltered.json')
 
 # extract list of folders in the enron dataset
 enron_folders = list_folders(in_folder)

@@ -5,10 +5,8 @@ import pathlib
 from collections import defaultdict
 
 # define input and output file location 
-#enron_unfiltered = pathlib.Path('/opt/enron_processed/enron_emails_unfiltered.json')
-enron_unfiltered = pathlib.Path('/opt/enron_processed/enron_emails.json')
-#enron_filtered = pathlib.Path('/opt/enron_processed/enron_emails.json')
-enron_filtered = pathlib.Path('/opt/enron_processed/enron_emails_filtered.json')
+enron_unfiltered = pathlib.Path('/opt/enron_processed/enron_emails_unfiltered.json')
+enron_filtered = pathlib.Path('/opt/enron_processed/enron_emails.json')
 
 
 # init dict
@@ -65,7 +63,7 @@ for key, value in main_dict.items():
 
     else:
         with open(enron_filtered, 'a', encoding="utf-8") as outfile:
-            json.dump(value, outfile)
+            json.dump(value[0], outfile)
             outfile.write('\n')
 
 

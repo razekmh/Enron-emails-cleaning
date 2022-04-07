@@ -30,10 +30,10 @@ MERGE (s)-[:CC {email_date:row.email_date, email_subject:row.email_subject, emai
   )
 ;"
 
-cypher-shell -u neo4j -p somepassword "
-CREATE USER user01 IF NOT EXISTS
-SET PASSWORD ENCRYPTED 'simplepassword'
-SET STATUS ACTIVE
-SET HOME DATABASE neo4j
-"
+#cypher-shell -u neo4j -p somepassword "
+#CREATE USER user01 IF NOT EXISTS
+#SET PASSWORD ENCRYPTED 'simplepassword'
+#SET STATUS ACTIVE
+#SET HOME DATABASE neo4j
+#"
 

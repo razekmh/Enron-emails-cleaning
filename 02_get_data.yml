@@ -24,8 +24,14 @@
     - name: extract emails to one json
       script: utils/enron_extract_emails.py
       args:
-        creates: /opt/enron_processed/enron_emails.json
+        creates: /opt/enron_processed/enron_emails_filtered.json
     
+    - name: filter email duplicates
+      script: utils/enron_filter_duplicates.py
+      args:
+        creates: /opt/enron_processed/enron_emails.json
+        
+        
     - name: install python lib
       pip:
         name: "{{ packagesdep }}"
