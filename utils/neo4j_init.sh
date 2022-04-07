@@ -29,3 +29,11 @@ FOREACH (_ IN CASE WHEN row.transaction_type='cc' THEN [1] ELSE [] END |
 MERGE (s)-[:CC {email_date:row.email_date, email_subject:row.email_subject, email_message_id:row.email_message_id, routing:row.routing}]->(r)
   )
 ;"
+
+cypher-shell -u neo4j -p somepassword "
+CREATE USER user01 IF NOT EXISTS
+SET PASSWORD ENCRYPTED 'simplepassword'
+SET STATUS ACTIVE
+SET HOME DATABASE neo4j
+"
+
