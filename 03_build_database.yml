@@ -27,7 +27,8 @@
       - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
       - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
       - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
-        
+
+
 
   - name: build postgresql
     register: docker_container_output
@@ -116,6 +117,7 @@
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
               - NEO4J_AUTH=neo4j/somepassword
+              - NEO$J_dbms.default_database=enron
               - NEO4J_dbms_memory_pagecache_size=4G
               - NEO4J_dbms.memory.heap.initial_size=4G
               - NEO4J_dbms_memory_heap_max__size=4G   
@@ -134,16 +136,18 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
 
-  - name: import data to postgresql
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
-    register: postgresql_script_output
-      
   - name: import data to neo4j
     community.docker.docker_container_exec:
       container: databases_neo4j_1
       command: sh "/var/lib/neo4j/conf/neo4j_init.sh"
     register: neo4j_script_output
  
+  - name: import rel to neo4j
+    script: utils/neo4j_load_data.py
 
+
+  - name: import data to postgresql
+    community.docker.docker_container_exec:
+      container: databases_pg_container_1
+      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
+    register: postgresql_script_output

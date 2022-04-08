@@ -24,7 +24,7 @@
     - name: extract emails to one json
       script: utils/enron_extract_emails.py
       args:
-        creates: /opt/enron_processed/enron_emails_filtered.json
+        creates: /opt/enron_processed/enron_emails_unfiltered.json
     
     - name: filter email duplicates
       script: utils/enron_filter_duplicates.py

@@ -53,9 +53,11 @@ with open (enron_neo4j_path / 'nodes_subset.csv', "w") as users_file:
             write_dict["company"] = row["company"]
 
         nodes_writer.writerow(write_dict)
-        node_count += 1
-        if node_count > 500:
-            break
+#        node_count += 1
+#        if node_count > 500:
+#           break
+
+
 # create user nodes
 #with open (enron_neo4j_path / 'nodes.csv', "w") as users_file:
 #    fieldnames = ["user_id","user_email","first_name","last_name","rank","role","company"]  
@@ -103,8 +105,8 @@ with open (enron_neo4j_path / 'relationships_subset.csv', "w") as rel_file:
             rel_dict["rel_type"] = "SENT_TO"
             rel_writer.writerow(rel_dict)    
             rel_count += 1
-            if rel_count > 4000:
-                break 
+#            if rel_count > 4000:
+#                break 
 
 #with open (enron_neo4j_path / 'relationships.csv', "w") as rel_file:
 #    rel_writer.writerow({"sender":":START_ID","email_date":"email_date","email_subject":"email_subject","email_message_id":"email_message_id","transaction_type":"transaction_type","routing":"routing","receiver":":END_ID","rel_type":":TYPE"})
