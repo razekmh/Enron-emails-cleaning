@@ -40,6 +40,7 @@
           - python-dateutil
           - pandas
           - pytz
+          - py2neo
 
     - name: Postgresql - create folder for data
       file:

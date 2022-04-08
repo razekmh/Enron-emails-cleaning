@@ -145,7 +145,6 @@
   - name: import rel to neo4j
     script: utils/neo4j_load_data.py
 
-
   - name: import data to postgresql
     community.docker.docker_container_exec:
       container: databases_pg_container_1

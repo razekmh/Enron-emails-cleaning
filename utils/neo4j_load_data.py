@@ -8,15 +8,15 @@ selector = NodeMatcher(graph)
 node_cache = {}
 
 rel = Path("/opt/enron_processed/enron_neo4j/relationships_subset.csv")
-nodes = Path()
+nodes = Path("/opt/enron_processed/enron_neo4j/nodes_subset.csv")
 
 with open(nodes, "r") as nodes:
     reader = csv.DictReader(nodes)
     for row in reader: 
-        tx =graph.begin()
-        n = Node("User", user_id=row['user_id'] 
-        "user_id","user_email","first_name","last_name","rank","role","company"
-
+        tx = graph.begin()
+        n = Node("User", user_id=row['user_id'], user_email=row['user_email'], first_name=row['first_name'], last_name=row['last_name'], rank=row['rank'], role=row['role'], company=row['company'])
+        tx.create(n)
+        tx.commit()
 
 with open(rel, "r") as relations: 
     reader = csv.DictReader(relations)

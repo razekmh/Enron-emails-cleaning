@@ -7,11 +7,11 @@ cypher-shell -u neo4j -p somepassword "
 MATCH (n)
 DETACH DELETE n"
 
-cypher-shell -u beo4j -p somepassword "
-USING PERIODIC COMMIT 50
-LOAD CSV WITH HEADERS FROM 'file:///nodes_subset.csv' AS row
-MERGE (u:User {user_id: row.user_id, user_email:row.user_email, first_name: row.first_name, last_name:row.last_name, rank:row.rank, role:row.role, company:row.company})
-RETURN count(u);"
+#cypher-shell -u beo4j -p somepassword "
+#USING PERIODIC COMMIT 50
+#LOAD CSV WITH HEADERS FROM 'file:///nodes_subset.csv' AS row
+#MERGE (u:User {user_id: row.user_id, user_email:row.user_email, first_name: row.first_name, last_name:row.last_name, rank:row.rank, role:row.role, company:row.company})
+#RETURN count(u);"
 
 #cypher-shell -u neo4j -p somepassword "
 #USING PERIODIC COMMIT 50
