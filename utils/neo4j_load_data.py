@@ -1,7 +1,8 @@
 import csv
 from pathlib import Path
 from py2neo import NodeMatcher,Graph,Node,Relationship
-graph = Graph("http://170.187.154.119:7474/db/data/", auth=("neo4j", "somepassword"))
+#graph = Graph("http://170.187.154.119:7474/db/data/", auth=("neo4j", "somepassword"))
+graph = Graph("bolt://170.187.154.119:7687", auth=("neo4j","somepassword"))
 
 #tx = graph.begin()
 selector = NodeMatcher(graph)

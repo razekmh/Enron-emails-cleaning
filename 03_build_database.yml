@@ -27,7 +27,7 @@
       - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
       - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
       - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
-
+      - { src: '/opt/Enron-emails-cleaning/utils/neo4j_load_data.py', dest: '/opt/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
 
 
   - name: build postgresql
@@ -143,7 +143,7 @@
     register: neo4j_script_output
  
   - name: import rel to neo4j
-    script: utils/neo4j_load_data.py
+    command: python3 /opt/neo4j_anchor/neo4j_load_data.py
 
   - name: import data to postgresql
     community.docker.docker_container_exec:
