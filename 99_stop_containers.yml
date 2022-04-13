@@ -15,3 +15,13 @@
         name: "{{ item }}"
         state: absent
       loop: "{{ docker_info.containers | map(attribute='Id') | list }}"
+
+    - name: delete anchor folders
+      file:
+        state: absent
+        path: "{{ item }}"
+      loop:
+        - /opt/postgresql_anchor
+        - /opt/es_anchor
+        - /opt/neo4j_anchor
+

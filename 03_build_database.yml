@@ -6,6 +6,7 @@
   tasks: 
   
   - name: create database directories
+    become: yes
     file:
       path: "{{ item }}"
       state: directory
@@ -17,6 +18,7 @@
       - /opt/neo4j_anchor/data
 
   - name: copy data ans secipts
+    become: yes
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
     with_items:
       - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init.sh', dest: '/opt/postgresql_anchor/01-init.sh', remote: 'no' }
@@ -117,7 +119,9 @@
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
               - NEO4J_AUTH=neo4j/{{ NEO4JPASS }}
-              - NEO$J_dbms.default_database=enron
+              #- NEO4J_dbms.security.auth_enabled=false
+              #- NEO4J_AUTH=neo4j/simplepassword
+              #- NEO4J_dbms.default_database=enron
               - NEO4J_dbms_memory_pagecache_size=4G
               - NEO4J_dbms.memory.heap.initial_size=4G
               - NEO4J_dbms_memory_heap_max__size=4G   
@@ -137,20 +141,24 @@
     delay: 5 # Every 5 seconds
   
   - name: make script executable neo4j
+    become: yes
     community.docker.docker_container_exec:
       container: databases_neo4j_1
       command: /bin/sh -c "chmod +x /var/lib/neo4j/conf/neo4j_init.sh"
+  
   - name: import data to neo4j
+    become: yes
     community.docker.docker_container_exec:
       container: databases_neo4j_1
-      command: /bin/sh -c "/var/lib/neo4j/conf/neo4j_init.sh -u neo4j -p {{ NEO4JPASS }}"
+      command: /bin/sh -c "/var/lib/neo4j/conf/neo4j_init.sh -u neo4j -p {{ NEO4JPASS }} "
     register: neo4j_script_output
  
   - name: import rel to neo4j
-    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p "{{ NEO4JPASS }}"
-
+    become: yes
+    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }}
 
   - name: import data to postgresql
+    become: yes
     community.docker.docker_container_exec:
       container: databases_pg_container_1
       command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
