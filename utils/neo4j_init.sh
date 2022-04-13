@@ -2,8 +2,15 @@
 
 pwd 
 ls /import
+while getopts u:p: flag
+do
+    case "${flag}" in
+        u) username=${OPTARG};;
+        p) password=${OPTARG};;
+    esac
+done
 
-cypher-shell -u neo4j -p somepassword "
+cypher-shell -u $username -p $password "
 MATCH (n)
 DETACH DELETE n"
 

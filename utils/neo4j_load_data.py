@@ -1,8 +1,19 @@
 import csv
+import sys
+import  getopt
 from pathlib import Path
 from py2neo import NodeMatcher,Graph,Node,Relationship
+
+args = sys.argv[1:]
+opts, args = getopt.getopt(argv,"u:p:",["username=","password="])
+
+for o, a in opts:
+    if o in ("-u","--username"):
+        username = a
+    elif o in ("-p","--pasword"):
+        password = a
 #graph = Graph("http://170.187.154.119:7474/db/data/", auth=("neo4j", "somepassword"))
-graph = Graph("bolt://170.187.154.119:7687", auth=("neo4j","somepassword"))
+graph = Graph("bolt://170.187.154.119:7687", auth=(username,password))
 
 #tx = graph.begin()
 selector = NodeMatcher(graph)

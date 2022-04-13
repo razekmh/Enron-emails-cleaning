@@ -41,12 +41,12 @@
             image: postgres
             restart: always
             environment:
-              POSTGRES_USER: razekmh
-              POSTGRES_PASSWORD: root
-              POSTGRES_DB: test_db
-              APP_DB_USER: docker
-              APP_DB_PASS: docker
-              APP_DB_NAME: docker
+              POSTGRES_USER: "{{ POSTGRES_USER }}"
+              POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD }}"
+              POSTGRES_DB: "{{ POSTGRES_DB }}"
+              APP_DB_USER: "{{ APP_DB_USER }}"
+              APP_DB_PASS: "{{ APP_DB_PASS }}"
+              APP_DB_NAME: "{{ APP_DB_NAME }}"
             ports:
               - "5432:5432"
             volumes:
@@ -116,7 +116,7 @@
               - /opt/neo4j_anchor/logs:/logs
               - /opt/neo4j_anchor/plugins:/plugins
             environment: 
-              - NEO4J_AUTH=neo4j/somepassword
+              - NEO4J_AUTH=neo4j/{{ NEO4JPASS }}
               - NEO$J_dbms.default_database=enron
               - NEO4J_dbms_memory_pagecache_size=4G
               - NEO4J_dbms.memory.heap.initial_size=4G
@@ -135,15 +135,20 @@
     until: _result.status == 200
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
-
+  
+  - name: make script executable neo4j
+    community.docker.docker_container_exec:
+      container: databases_neo4j_1
+      command: /bin/sh -c "chmod +x /var/lib/neo4j/conf/neo4j_init.sh"
   - name: import data to neo4j
     community.docker.docker_container_exec:
       container: databases_neo4j_1
-      command: sh "/var/lib/neo4j/conf/neo4j_init.sh"
+      command: /bin/sh -c "/var/lib/neo4j/conf/neo4j_init.sh -u neo4j -p {{ NEO4JPASS }}"
     register: neo4j_script_output
  
   - name: import rel to neo4j
-    command: python3 /opt/neo4j_anchor/neo4j_load_data.py
+    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p "{{ NEO4JPASS }}"
+
 
   - name: import data to postgresql
     community.docker.docker_container_exec:

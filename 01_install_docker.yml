@@ -29,10 +29,12 @@
           - rsync
           - python3-pip
     - name: Add Apt signing key from official docker repo
+      become: yes
       apt_key:
         url: https://download.docker.com/linux/debian/gpg
         state: present
     - name: add docker official repository for Debian Stretch
+      become: yes
       apt_repository:
         repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
         state: present
@@ -44,16 +46,19 @@
         update_cache: yes
         force_apt_get: yes
     - name: actually install docker
+      become: yes
       apt:
         name: "docker-ce"
         state: latest
     - name: Ensure docker-compose is installed and available
+      become: yes
       get_url:
         url: https://github.com/docker/compose/releases/download/1.29.2/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
         dest: /usr/local/bin/docker-compose
         mode: 'u+x,g+x'
     
     - name: install python sdk
+      become: yes
       pip:
         name: 
           - docker 
