@@ -29,9 +29,9 @@ VALUES('0','Unknown',NULL, NULL, NULL, NULL, NULL);
 COPY users FROM '/docker-entrypoint-initdb.d/unique_users_with_names.csv' DELIMITER ',' CSV HEADER;
 
 
-DROP TABLE IF EXISTS eamil_transactions CASCADE;
+DROP TABLE IF EXISTS email_transactions CASCADE;
 
-CREATE TABLE eamil_transactions (
+CREATE TABLE email_transactions (
 		transaction_id VARCHAR (50) PRIMARY KEY,
 		email_message_id VARCHAR (50),
 		sender VARCHAR (250),
@@ -43,7 +43,7 @@ CREATE TABLE eamil_transactions (
 		FOREIGN KEY (receiver) REFERENCES users(user_id)
 		);
 
-COPY eamil_transactions FROM '/docker-entrypoint-initdb.d/unique_email_users.csv' DELIMITER ',' CSV HEADER;
+COPY email_transactions FROM '/docker-entrypoint-initdb.d/unique_email_users.csv' DELIMITER ',' CSV HEADER;
 
 \set PG_VIEWER_USER `echo "$PG_VIEWER_USER"`
 \set PG_VIEWER_PASS `echo "$PG_VIEWER_PASS"`
