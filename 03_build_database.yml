@@ -45,10 +45,12 @@
             environment:
               POSTGRES_USER: "{{ POSTGRES_USER }}"
               POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD }}"
-              POSTGRES_DB: "{{ POSTGRES_DB }}"
+             #POSTGRES_DB: "{{ POSTGRES_DB }}"
               APP_DB_USER: "{{ APP_DB_USER }}"
               APP_DB_PASS: "{{ APP_DB_PASS }}"
               APP_DB_NAME: "{{ APP_DB_NAME }}"
+              PG_VIEWER_USER: "{{ PG_VIEWER_USER }}"
+              PG_VIEWER_PASS: "{{ PG_VIEWER_PASS }}"
             ports:
               - "5432:5432"
             volumes:
@@ -58,8 +60,8 @@
             image: dpage/pgadmin4
             restart: always
             environment:
-              PGADMIN_DEFAULT_EMAIL: admin@admin.com
-              PGADMIN_DEFAULT_PASSWORD: root
+              PGADMIN_DEFAULT_EMAIL: "{{ PGADMIN_EMAIL  }}"
+              PGADMIN_DEFAULT_PASSWORD: "{{ PGADMIN_PASS  }}"
             ports: 
               - "5050:80"
 
@@ -140,6 +142,13 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
   
+  - name: import data to postgresql
+    become: yes
+    community.docker.docker_container_exec:
+      container: databases_pg_container_1
+      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init.sql"
+    register: postgresql_script_output
+
   - name: make script executable neo4j
     become: yes
     community.docker.docker_container_exec:
@@ -157,9 +166,3 @@
     become: yes
     command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }}
 
-  - name: import data to postgresql
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U docker -a -f /opt/02-init.sql"
-    register: postgresql_script_output
