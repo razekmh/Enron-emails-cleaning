@@ -87,7 +87,7 @@ df_relationships = pd.merge(df_transactions, df_emails, on='email_message_id', h
 
 rel_count = 0
 with open (enron_neo4j_path / 'relationships_subset.csv', "w") as rel_file:
-    fieldnames = ["sender","email_date","email_subject","email_message_id","transaction_type","routing","receiver","rel_type"]
+    fieldnames = ["sender","email_date","email_body","email_subject","email_message_id","transaction_type","routing","receiver","rel_type"]
     rel_writer = csv.DictWriter( rel_file, delimiter=',', quoting=csv.QUOTE_ALL, fieldnames=fieldnames, restval="")
     rel_writer.writeheader()
     for index, row in df_relationships.iterrows():
@@ -98,6 +98,7 @@ with open (enron_neo4j_path / 'relationships_subset.csv', "w") as rel_file:
             if not pd.isna(row['email_subject']):
                 email_subject = row['email_subject'].replace("'", "")
                 rel_dict["email_subject"] = email_subject.replace(":", " ")
+            rel_dict['email_body'] = row['email_body']
             rel_dict['email_message_id'] = row['email_message_id']
             if row["transaction_type"] != "None":
                 rel_dict['transaction_type'] = row['transaction_type']

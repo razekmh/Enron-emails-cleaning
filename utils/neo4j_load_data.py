@@ -30,7 +30,7 @@ with open(rel, "r") as relations:
     reader = csv.DictReader(relations)
     for row in reader:
         tx = graph.begin()
-        prop = {"email_date":row["email_date"], "email_subject":row["email_subject"],"email_message_id":row["email_message_id"], "routing":row["routing"]}
+        prop = {"email_date":row["email_date"], "email_subject":row["email_subject"],"email_body":row["email_body"],"email_message_id":row["email_message_id"], "routing":row["routing"]}
         sender = row['sender']
         receiver = row['receiver']
         
