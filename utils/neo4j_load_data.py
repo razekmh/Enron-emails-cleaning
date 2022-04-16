@@ -18,6 +18,18 @@ node_cache = {}
 rel = Path("/opt/enron_processed/enron_neo4j/relationships_subset.csv")
 nodes = Path("/opt/enron_processed/enron_neo4j/nodes_subset.csv")
 
+#set field maxsize
+maxInt = sys.maxsize
+
+while True:
+        # decrease the maxInt value by factor 10 
+        # as long as the OverflowError occurs.
+    try:
+        csv.field_size_limit(maxInt)
+        break
+    except OverflowError:
+        maxInt = int(maxInt/10)
+
 with open(nodes, "r") as nodes:
     reader = csv.DictReader(nodes)
     for row in reader: 

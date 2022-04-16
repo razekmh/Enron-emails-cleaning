@@ -24,7 +24,7 @@ enron_neo4j_path = pathlib.Path('/opt/enron_processed/enron_neo4j')
 df_users = pd.read_csv(enron_pg_path / 'unique_users_with_names.csv')
 
 # read emails csv
-df_emails = pd.read_csv(enron_pg_path / 'emails.csv', usecols=['email_message_id', 'email_date', 'email_subject'])
+df_emails = pd.read_csv(enron_pg_path / 'emails.csv', usecols=['email_message_id', 'email_date', 'email_subject','email_body'])
 
 # read transactions csv
 df_transactions = pd.read_csv(enron_pg_path / 'unique_email_users.csv')
