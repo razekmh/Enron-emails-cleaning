@@ -6,10 +6,12 @@ from py2neo import NodeMatcher,Graph,Node,Relationship
 
 username = sys.argv[2]
 password = sys.argv[4]
+server_ip = sys.argv[6]
 
+connect_url = f"bolt://"+server_ip+":7687"
 print(username,password)
 #graph = Graph("http://170.187.154.119:7474/db/data/", auth=("neo4j", "somepassword"))
-graph = Graph("bolt://170.187.154.119:7687", auth=(username,password))
+graph = Graph(connect_url, auth=(username,password))
 
 #tx = graph.begin()
 selector = NodeMatcher(graph)

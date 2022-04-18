@@ -4,7 +4,6 @@
     ansible_python_interpreter: /usr/bin/python3
   hosts: all
   tasks: 
-  
   - name: create database directories
     become: yes
     file:
@@ -164,5 +163,5 @@
  
   - name: import rel to neo4j
     become: yes
-    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }}
+    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }} -i {{ ansible_ssh_host }}
 
