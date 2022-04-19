@@ -1,0 +1,100 @@
+- name: build database and import data
+  become: yes
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+  hosts: all
+  tasks:
+  - name: delete anchor folders
+    file:
+      state: absent
+      path: "{{ item }}"
+    loop:
+      - /opt/es_anchor
+
+  - name: Stop running containers
+    docker_container:
+      name: "{{ item }}"
+      state: absent
+    loop:
+      - logstash-contanier
+      - kb-container
+      - es-container
+
+  - name: create database directories
+    become: yes
+    file:
+      path: "{{ item }}"
+      state: directory
+    loop:
+      - /opt/es_anchor
+
+  - name: copy data ans secipts
+    become: yes
+    copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
+    with_items:
+      - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
+      - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
+
+  - name: build postgresql
+    register: docker_container_output
+    community.docker.docker_compose:
+      project_name: databases
+      definition:
+        version: '3.3'
+        services:
+          elasticsearch:
+            container_name: es-container
+            image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+            restart: always
+            environment:
+              - xpack.security.enabled=false
+              - "discovery.type=single-node"
+            networks:
+              - es-net
+            ports:
+              - 9200:9200
+
+          kibana:
+            container_name: kb-container
+            image: docker.elastic.co/kibana/kibana:7.11.0
+            restart: always
+            environment:
+              - ELASTICSEARCH_HOSTS=http://es-container:9200
+            networks:
+              - es-net
+            depends_on: 
+              - "elasticsearch"
+            ports:
+              - 5601:5601
+          
+          logstash:
+            container_name: logstash-contanier
+            image: docker.elastic.co/logstash/logstash:7.11.0
+            restart: always
+            networks: 
+              - es-net
+            command: sh -c "logstash -f /etc/logstash/conf.d/logstash.conf"
+            depends_on:
+              - "elasticsearch"
+            ports:
+              - 5044:5044
+              - 5000:5000
+              - 9600:9600
+            volumes:
+              - /opt/es_anchor/logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
+              - /opt/enron_processed/enron_es/enron_emails_elasticsearch.json:/opt/enron_emails_elasticsearch.json:ro 
+
+        networks:
+          es-net:
+            driver: bridge             
+
+  - name: Pause play until a elasticsearch is reachable
+    uri:
+      url: "http://127.0.0.1:9200"
+      follow_redirects: none
+      method: GET
+    register: _result
+    until: _result.status == 200
+    retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+    delay: 5 # Every 5 seconds
+  
