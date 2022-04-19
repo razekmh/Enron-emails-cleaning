@@ -31,6 +31,13 @@ def write_line(line):
         f.write(json.dumps(line))
         f.write('\n')
 
+def split_email(email_string):
+    if email_string:
+        return email_string.split(',')
+    else:
+        email_string = []
+        return email_string
+
 # read in json file line by line
 with open(input_path, 'r') as f:
     for line in f:
@@ -39,6 +46,12 @@ with open(input_path, 'r') as f:
             email = json.loads(line)
             # convert date to utc
             email['email_date'] = parser.parse(email["email_date"]).astimezone(utc).strftime(fmt)
+
+            # split emails to list
+            email['email_to'] = split_email(email['email_to'])
+            email['email_cc'] = split_email(email['email_cc'])
+            email['email_bcc'] = split_email(email['email_bcc'])
+
             # # convert date to utc
             # email['email_date'] = email['email_date'].astimezone(utc).strftime(fmt)
             write_line(email)
