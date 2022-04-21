@@ -49,6 +49,8 @@
             environment:
               - xpack.security.enabled=false
               - "discovery.type=single-node"
+              - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+            mem_limit: 4g
             networks:
               - es-net
             ports:
