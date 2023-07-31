@@ -4,14 +4,14 @@
     ansible_python_interpreter: /usr/bin/python3
   hosts: all
   tasks: 
-  - name: delete anchor folders
+  - name: delete anchor folder
     file:
       state: absent
       path: "{{ item }}"
     loop:
       - /opt/neo4j_anchor
 
-  - name: Stop running containers
+  - name: Stop running container
     docker_container:
       name: "{{ item }}"
       state: absent
@@ -28,7 +28,7 @@
       - /opt/neo4j_anchor/data
       - /opt/neo4j_anchor/plugins
 
-  - name: copy data and secipts
+  - name: Copy scripts
     become: yes
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
     with_items:
@@ -42,7 +42,7 @@
       dest: /opt/neo4j_anchor/plugins/neo4j-graph-data-science-1.1.7-standalone.jar
       mode: '0444'
 
-  - name: build postgresql
+  - name: Build neo4j server
     register: docker_container_output
     community.docker.docker_compose:
       project_name: databases
@@ -67,17 +67,29 @@
               #- NEO4J_AUTH=neo4j/simplepassword
               #- NEO4J_dbms.default_database=enron
               - NEO4J_dbms_memory_pagecache_size=4G
-              - NEO4J_dbms_memory_heap_initial_size=4G
-              - NEO4J_dbms_memory_heap_max_size=4G  
+              #- NEO4J_dbms_memory_heap_initial_size=4G
+              #- NEO4J_dbms_memory_heap_max_size=4G  
               - NEO4J_dbms_security_procedures_unrestricted=gds.*
               - NEO4j_dbms_security_procedures_whitelist=gds.* 
-              
+
   - name: make script executable neo4j
     become: yes
     community.docker.docker_container_exec:
       container: databases_neo4j_1
       command: /bin/sh -c "chmod +x /var/lib/neo4j/conf/neo4j_init.sh"
   
+  - name: change ownership of data folder to neo4j
+    become: yes
+    community.docker.docker_container_exec:
+      container: databases_neo4j_1
+      command: /bin/sh -c "chown -R neo4j:neo4j /data"
+
+  - name: change ownership of neo4j folder contents to neo4j
+    become: yes
+    community.docker.docker_container_exec:
+      container: databases_neo4j_1
+      command: /bin/sh -c "chown -R neo4j:neo4j /var/lib/neo4j"
+
   - name: import data to neo4j
     become: yes
     community.docker.docker_container_exec:

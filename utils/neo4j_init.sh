@@ -1,5 +1,8 @@
 #!/bin/bash
 
+chown -R neo4j:neo4j /data
+chown -R neo4j:neo4j /var/lib/neo4j
+
 pwd 
 ls /import
 

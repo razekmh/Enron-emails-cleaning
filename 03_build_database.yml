@@ -16,7 +16,7 @@
       - /opt/neo4j_anchor/conf_init
       - /opt/neo4j_anchor/data
 
-  - name: copy data ans secipts
+  - name: copy data and secipts
     become: yes
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
     with_items:
@@ -31,7 +31,7 @@
       - { src: '/opt/Enron-emails-cleaning/utils/neo4j_load_data.py', dest: '/opt/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
 
 
-  - name: build postgresql
+  - name: build database servers
     register: docker_container_output
     community.docker.docker_compose:
       project_name: databases
@@ -39,7 +39,7 @@
         version: '3.3'
         services:
           pg_container:
-            image: postgres
+            image: postgres:15.3-bullseye
             restart: always
             environment:
               POSTGRES_USER: "{{ POSTGRES_USER }}"

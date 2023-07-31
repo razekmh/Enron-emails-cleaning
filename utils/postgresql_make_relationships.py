@@ -23,6 +23,9 @@ print(df_email_users.duplicated(subset=['sender', 'receiver', 'email_message_id'
 # drop duplicates
 df_email_users = df_email_users.drop_duplicates(subset=['sender', 'receiver', 'email_message_id'])
 
+# quick fix for the NaN cells 
+df_email_users = df_email_users.where(pd.notnull(df_email_users), 'None')
+
 # add external or internal flag
 def is_external(row):
     if row['sender'] == 'None' or row['receiver'] == 'None' or '@' not in row['sender'] or '@' not in row['receiver']:
