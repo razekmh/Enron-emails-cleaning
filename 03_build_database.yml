@@ -21,7 +21,9 @@
     copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
     with_items:
       - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init.sh', dest: '/opt/postgresql_anchor/01-init.sh', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_nouser.sql', dest: '/opt/postgresql_scripts/02-init.sql', remote: 'no' }
+      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DDL.sql', dest: '/opt/postgresql_scripts/02-init-DDL.sql', remote: 'no' }
+      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DML.sql', dest: '/opt/postgresql_scripts/02-init-DML.sql', remote: 'no' }
+      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DCL.sql', dest: '/opt/postgresql_scripts/02-init-DCL.sql', remote: 'no' }
       - { src: '/opt/enron_processed/enron_postgresql/emails.csv', dest: '/opt/postgresql_anchor/emails.csv', remote: 'yes' }    
       - { src: '/opt/enron_processed/enron_postgresql/unique_users_with_names.csv', dest: '/opt/postgresql_anchor/unique_users_with_names.csv', remote: 'yes' }  
       - { src: '/opt/enron_processed/enron_postgresql/unique_email_users.csv', dest: '/opt/postgresql_anchor/unique_email_users.csv', remote: 'yes' } 
@@ -141,11 +143,25 @@
     retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
     delay: 5 # Every 5 seconds
   
-  - name: import data to postgresql
+  - name: Build postgresql database structure
     become: yes
     community.docker.docker_container_exec:
       container: databases_pg_container_1
-      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init.sql"
+      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DDL.sql"
+    register: postgresql_script_output
+
+  - name: Import data to postgresql
+    become: yes
+    community.docker.docker_container_exec:
+      container: databases_pg_container_1
+      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DML.sql"
+    register: postgresql_script_output
+
+  - name: Add permissions to postgresql user
+    become: yes
+    community.docker.docker_container_exec:
+      container: databases_pg_container_1
+      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DCL.sql"
     register: postgresql_script_output
 
   - name: make script executable neo4j
