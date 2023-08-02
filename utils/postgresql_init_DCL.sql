@@ -1,6 +1,5 @@
 --\connect $APP_DB_USER $APP_DB_NAME
 
-
 \set PG_VIEWER_USER `echo "$PG_VIEWER_USER"`
 \set PG_VIEWER_PASS `echo "$PG_VIEWER_PASS"`
 \set APP_DB_NAME `echo "$APP_DB_NAME"`
