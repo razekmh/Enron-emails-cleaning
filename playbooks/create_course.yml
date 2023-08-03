@@ -1,0 +1,14 @@
+---
+- hosts: all
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    include_elastic: true
+    include_pg: true
+    include_neo4j: true
+
+  roles:
+    - install_docker
+    - get_data
+    - {role: build_elastic, when: include_elastic }
+    - {role: build_pg, when: include_pg }
+    - {role: build_neo4j, when: include_neo4j }
