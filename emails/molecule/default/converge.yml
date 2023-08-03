@@ -1,8 +1,0 @@
----
-- name: Converge
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: "Include enron.emails"
-      ansible.builtin.include_role:
-        name: "enron.emails"
