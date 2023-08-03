@@ -1,183 +1,72 @@
-- name: build database and import data
+- name: Create neo4j directories
   become: yes
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-  hosts: all
-  tasks: 
-  - name: create database directories
-    become: yes
-    file:
-      path: "{{ item }}"
-      state: directory
-    loop:
-      - /opt/postgresql_anchor
-      - /opt/postgresql_scripts
-      - /opt/es_anchor
-      - /opt/neo4j_anchor/conf_init
-      - /opt/neo4j_anchor/data
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - /opt/neo4j_anchor/conf_init
+    - /opt/neo4j_anchor/data
 
-  - name: copy data and secipts
-    become: yes
-    copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
-    with_items:
-      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init.sh', dest: '/opt/postgresql_anchor/01-init.sh', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DDL.sql', dest: '/opt/postgresql_scripts/02-init-DDL.sql', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DML.sql', dest: '/opt/postgresql_scripts/02-init-DML.sql', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/postgresql_init_DCL.sql', dest: '/opt/postgresql_scripts/02-init-DCL.sql', remote: 'no' }
-      - { src: '/opt/enron_processed/enron_postgresql/emails.csv', dest: '/opt/postgresql_anchor/emails.csv', remote: 'yes' }    
-      - { src: '/opt/enron_processed/enron_postgresql/unique_users_with_names.csv', dest: '/opt/postgresql_anchor/unique_users_with_names.csv', remote: 'yes' }  
-      - { src: '/opt/enron_processed/enron_postgresql/unique_email_users.csv', dest: '/opt/postgresql_anchor/unique_email_users.csv', remote: 'yes' } 
-      - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/neo4j_load_data.py', dest: '/opt/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
+- name: Copy data and secipts
+  become:  yes
+  copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
+  with_items:
+    - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
+    - { src: '/opt/Enron-emails-cleaning/utils/neo4j_load_data.py', dest: '/opt/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
 
 
-  - name: build database servers
-    register: docker_container_output
-    community.docker.docker_compose:
-      project_name: databases
-      definition:
-        version: '3.3'
-        services:
-          pg_container:
-            image: postgres:15.3-bullseye
-            restart: always
-            environment:
-              POSTGRES_USER: "{{ POSTGRES_USER }}"
-              POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD }}"
-             #POSTGRES_DB: "{{ POSTGRES_DB }}"
-              APP_DB_USER: "{{ APP_DB_USER }}"
-              APP_DB_PASS: "{{ APP_DB_PASS }}"
-              APP_DB_NAME: "{{ APP_DB_NAME }}"
-              PG_VIEWER_USER: "{{ PG_VIEWER_USER }}"
-              PG_VIEWER_PASS: "{{ PG_VIEWER_PASS }}"
-            ports:
-              - "5432:5432"
-            volumes:
-              - /opt/postgresql_anchor:/docker-entrypoint-initdb.d/
-              - /opt/postgresql_scripts:/opt/    
-          pgadmin4_container:
-            image: dpage/pgadmin4
-            restart: always
-            environment:
-              PGADMIN_DEFAULT_EMAIL: "{{ PGADMIN_EMAIL  }}"
-              PGADMIN_DEFAULT_PASSWORD: "{{ PGADMIN_PASS  }}"
-            ports: 
-              - "5050:80"
+- name: build database servers
+  register: docker_container_output
+  community.docker.docker_compose:
+    project_name: databases
+    definition:
+      version: '3.3'
+      services:
+        neo4j:
+          image: neo4j:3.5
+          restart: always
+          ports:
+            - 7474:7474
+            - 7687:7687
+          volumes:
+            - /opt/neo4j_anchor/conf_init:/conf
+            - /opt/enron_processed/enron_neo4j:/import
+            - /opt/neo4j_anchor/data:/data
+            - /opt/neo4j_anchor/logs:/logs
+            - /opt/neo4j_anchor/plugins:/plugins
+          environment: 
+            - NEO4J_AUTH=neo4j/{{ NEO4JPASS }}
+            #- NEO4J_dbms.security.auth_enabled=false
+            #- NEO4J_AUTH=neo4j/simplepassword
+            #- NEO4J_dbms.default_database=enron
+            - NEO4J_dbms_memory_pagecache_size=4G
+            - NEO4J_dbms.memory.heap.initial_size=4G
+            - NEO4J_dbms_memory_heap_max__size=4G   
+            
+#- name: Pause play until a elasticsearch is reachable
+#  uri:
+#    url: "http://127.0.0.1:9200"
+#    follow_redirects: none
+#    method: GET
+#  register: _result
+#  until: _result.status == 200
+#  retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
+#  delay: 5 # Every 5 seconds
 
-          elasticsearch:
-            container_name: es-container
-            image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-            restart: always
-            environment:
-              - xpack.security.enabled=false
-              - "discovery.type=single-node"
-            networks:
-              - es-net
-            ports:
-              - 9200:9200
+- name: make script executable neo4j
+  become: yes
+  community.docker.docker_container_exec:
+    container: databases_neo4j_1
+    command: /bin/sh -c "chmod +x /var/lib/neo4j/conf/neo4j_init.sh"
 
-          kibana:
-            container_name: kb-container
-            image: docker.elastic.co/kibana/kibana:7.11.0
-            restart: always
-            environment:
-              - ELASTICSEARCH_HOSTS=http://es-container:9200
-            networks:
-              - es-net
-            depends_on: 
-              - "elasticsearch"
-            ports:
-              - 5601:5601
-          
-          logstash:
-            container_name: logstash-contanier
-            image: docker.elastic.co/logstash/logstash:7.11.0
-            restart: always
-            networks: 
-              - es-net
-            command: sh -c "logstash -f /etc/logstash/conf.d/logstash.conf"
-            depends_on:
-              - "elasticsearch"
-            ports:
-              - 5044:5044
-              - 5000:5000
-              - 9600:9600
-            volumes:
-              - /opt/es_anchor/logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
-              - /opt/enron_processed/enron_es/enron_emails_elasticsearch.json:/opt/enron_emails_elasticsearch.json:ro 
+- name: import data to neo4j
+  become: yes
+  community.docker.docker_container_exec:
+    container: databases_neo4j_1
+    command: /bin/sh -c "/var/lib/neo4j/conf/neo4j_init.sh -u neo4j -p {{ NEO4JPASS }} "
+  register: neo4j_script_output
 
-          neo4j:
-            image: neo4j:3.5
-            restart: always
-            ports:
-              - 7474:7474
-              - 7687:7687
-            volumes:
-              - /opt/neo4j_anchor/conf_init:/conf
-              - /opt/enron_processed/enron_neo4j:/import
-              - /opt/neo4j_anchor/data:/data
-              - /opt/neo4j_anchor/logs:/logs
-              - /opt/neo4j_anchor/plugins:/plugins
-            environment: 
-              - NEO4J_AUTH=neo4j/{{ NEO4JPASS }}
-              #- NEO4J_dbms.security.auth_enabled=false
-              #- NEO4J_AUTH=neo4j/simplepassword
-              #- NEO4J_dbms.default_database=enron
-              - NEO4J_dbms_memory_pagecache_size=4G
-              - NEO4J_dbms.memory.heap.initial_size=4G
-              - NEO4J_dbms_memory_heap_max__size=4G   
-              
-        networks:
-          es-net:
-            driver: bridge             
-
-  - name: Pause play until a elasticsearch is reachable
-    uri:
-      url: "http://127.0.0.1:9200"
-      follow_redirects: none
-      method: GET
-    register: _result
-    until: _result.status == 200
-    retries: 720 # 720 * 5 seconds = 1hour (60*60/5)
-    delay: 5 # Every 5 seconds
-  
-  - name: Build postgresql database structure
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DDL.sql"
-    register: postgresql_script_output
-
-  - name: Import data to postgresql
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DML.sql"
-    register: postgresql_script_output
-
-  - name: Add permissions to postgresql user
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_pg_container_1
-      command: bin/bash -c "psql -U {{ APP_DB_USER }} -d {{ APP_DB_NAME }} -a -f /opt/02-init-DCL.sql"
-    register: postgresql_script_output
-
-  - name: make script executable neo4j
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_neo4j_1
-      command: /bin/sh -c "chmod +x /var/lib/neo4j/conf/neo4j_init.sh"
-  
-  - name: import data to neo4j
-    become: yes
-    community.docker.docker_container_exec:
-      container: databases_neo4j_1
-      command: /bin/sh -c "/var/lib/neo4j/conf/neo4j_init.sh -u neo4j -p {{ NEO4JPASS }} "
-    register: neo4j_script_output
- 
-  - name: import rel to neo4j
-    become: yes
-    command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }} -i {{ ansible_ssh_host }}
+- name: import rel to neo4j
+  become: yes
+  command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }} -i {{ ansible_ssh_host }}
 
