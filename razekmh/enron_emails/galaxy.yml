@@ -16,7 +16,9 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- your name <example@domain.com>
+- Mahmoud Abdelrazek <razekmh@gmail.com>
+- Ruaridh Gollifer <ruaridh.gollifer@ucl.ac.uk>
+- Paul Smith <paul.j.smith@ucl.ac.uk>
 
 
 ### OPTIONAL but strongly recommended
