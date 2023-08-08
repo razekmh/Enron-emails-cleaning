@@ -4,15 +4,15 @@
     path: "{{ item }}"
     state: directory
   loop:
-    - /opt/neo4j_anchor/conf_init
-    - /opt/neo4j_anchor/data
+    - "{{ project_folder }}/neo4j_anchor/conf_init"
+    - "{{ project_folder }}/neo4j_anchor/data"
 
 - name: Copy data and secipts
   become:  yes
   copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
   with_items:
-    - { src: '/opt/Enron-emails-cleaning/utils/neo4j_init.sh', dest: '/opt/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
-    - { src: '/opt/Enron-emails-cleaning/utils/neo4j_load_data.py', dest: '/opt/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
+    - { src: "{{ project_folder }}/Enron-emails-cleaning/utils/neo4j_init.sh", dest: '{{ project_folder }}/neo4j_anchor/conf_init/neo4j_init.sh', remote: 'no' }
+    - { src: "{{ project_folder }}/Enron-emails-cleaning/utils/neo4j_load_data.py", dest: '{{ project_folder }}/neo4j_anchor/neo4j_load_data.py', remote: 'no' }
 
 
 - name: build database servers
@@ -29,11 +29,11 @@
             - 7474:7474
             - 7687:7687
           volumes:
-            - /opt/neo4j_anchor/conf_init:/conf
-            - /opt/enron_processed/enron_neo4j:/import
-            - /opt/neo4j_anchor/data:/data
-            - /opt/neo4j_anchor/logs:/logs
-            - /opt/neo4j_anchor/plugins:/plugins
+            - "{{ project_folder }}/neo4j_anchor/conf_init:/conf"
+            - "{{ project_folder }}/enron_processed/enron_neo4j:/import"
+            - "{{ project_folder }}/neo4j_anchor/data:/data"
+            - "{{ project_folder }}/neo4j_anchor/logs:/logs"
+            - "{{ project_folder }}/neo4j_anchor/plugins:/plugins"
           environment: 
             - NEO4J_AUTH=neo4j/{{ NEO4JPASS }}
             #- NEO4J_dbms.security.auth_enabled=false
@@ -68,5 +68,5 @@
 
 - name: import rel to neo4j
   become: yes
-  command: python3 /opt/neo4j_anchor/neo4j_load_data.py -u neo4j -p {{ NEO4JPASS }} -i {{ ansible_ssh_host }}
+  command: python3 "{{ project_folder }}/neo4j_anchor/neo4j_load_data.py" -u neo4j -p {{ NEO4JPASS }} -i {{ ansible_ssh_host }}
 
