@@ -1,15 +1,15 @@
 - name: create database directories
     become: yes
     file:
-      path: /opt/es_anchor
+      path: {{ project_folder }}/es_anchor
       state: directory
 
 - name: copy data and secipts
   become: yes
   copy: src={{ item.src }} dest={{ item.dest }} remote_src={{ item.remote }}
   with_items:
-      - { src:  '/opt/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '/opt/es_anchor/elasticsearch_import.sh', remote: 'no' }
-      - { src: '/opt/Enron-emails-cleaning/utils/logstash.conf', dest: '/opt/es_anchor/logstash.conf', remote: 'no' }
+      - { src:  '{{ project_folder }}/Enron-emails-cleaning/utils/elasticsearch_import.sh', dest: '{{ project_folder }}/es_anchor/elasticsearch_import.sh', remote: 'no' }
+      - { src: '{{ project_folder }}/Enron-emails-cleaning/utils/logstash.conf', dest: '{{ project_folder }}/es_anchor/logstash.conf', remote: 'no' }
 
 - name: build elasticstack servers
   register: docker_container_output
@@ -38,16 +38,16 @@
             - ELASTICSEARCH_HOSTS=http://es-container:9200
           networks:
             - es-net
-          depends_on: 
+          depends_on:
             - "elasticsearch"
           ports:
             - 5601:5601
-          
+
         logstash:
           container_name: logstash-contanier
           image: docker.elastic.co/logstash/logstash:7.11.0
           restart: always
-          networks: 
+          networks:
             - es-net
           command: sh -c "logstash -f /etc/logstash/conf.d/logstash.conf"
           depends_on:
@@ -57,12 +57,12 @@
             - 5000:5000
             - 9600:9600
           volumes:
-            - /opt/es_anchor/logstash.conf:/etc/logstash/conf.d/logstash.conf:ro
-            - /opt/enron_processed/enron_es/enron_emails_elasticsearch.json:/opt/enron_emails_elasticsearch.json:ro 
+            - "{{ project_folder }}/es_anchor/logstash.conf:/etc/logstash/conf.d/logstash.conf:ro"
+            - "{{ project_folder }}/enron_processed/enron_es/enron_emails_elasticsearch.json:{{ project_folder }}/enron_emails_elasticsearch.json:ro"
 
       networks:
         es-net:
-          driver: bridge             
+          driver: bridge
 
 - name: Pause play until a elasticsearch is reachable
   uri:
